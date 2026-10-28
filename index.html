@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwiftTransit | Modern Bus Reservation &amp; Fleet Management</title>
+  <meta name="description" content="Online Bus Ticket Reservation and Management System for Passengers and Administrators. Book seats, view live routes, and manage tickets.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light-theme">
+
+  <!-- Top Service Announcement / Utility Bar -->
+  <header class="top-service-bar">
+    <div class="container service-bar-content">
+      <div class="service-meta">
+        <span class="badge live-badge">● Live Network</span>
+        <span class="service-text">Intercity Express Transit &bull; Real-time Seat Allocation &amp; Instant e-Tickets</span>
+      </div>
+      <div class="service-support">
+        <span>24&times;7 Helpline: <strong>1800-200-RIDE</strong> &bull; Verified Safe Travel</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Navigation Bar -->
+  <nav class="navbar" id="mainNavbar">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo" id="brandLogoBtn">
+        <div class="logo-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="15" rx="3"></rect>
+            <path d="M3 11h18"></path>
+            <path d="M7 19v2"></path>
+            <path d="M17 19v2"></path>
+            <circle cx="7" cy="15" r="1.5" fill="currentColor"></circle>
+            <circle cx="17" cy="15" r="1.5" fill="currentColor"></circle>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="brand-title">SwiftTransit</span>
+          <span class="brand-sub">Express Transit System</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="nav-links">
+        <button class="nav-link active" id="navHomeBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+          Find Buses
+        </button>
+        <button class="nav-link" id="navBusesBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><circle cx="7" cy="14" r="1"></circle><circle cx="17" cy="14" r="1"></circle></svg>
+          All Routes
+        </button>
+        <button class="nav-link hidden" id="navMyBookingsBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          My Bookings <span class="badge-counter" id="bookingCounter">0</span>
+        </button>
+        <button class="nav-link admin-only-link hidden" id="navAdminBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Admin Portal
+        </button>
+      </div>
+
+      <!-- Auth Action Section -->
+      <div class="nav-auth" id="navAuth">
+        <!-- Rendered dynamically by JS: Login Button or User Profile pill -->
+        <button class="btn btn-outline" id="openLoginBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+          Sign In / Register
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Application Container -->
+  <main class="app-main">
+
+    <!-- HERO SEARCH SECTION -->
+    <section class="hero-section" id="heroSection">
+      <div class="container hero-container">
+        <div class="hero-header">
+          <div class="hero-pill">
+            <span class="pulse-dot"></span> Smart Intercity Transit &bull; Guaranteed Seat Reservation
+          </div>
+          <h1 class="hero-title">Book Your Bus Seat with Confidence</h1>
+          <p class="hero-subtitle">
+            Search scheduled routes, choose your preferred seat in real-time, get instant digital boarding passes, and enjoy flexible cancellation with instant 90% refund.
+          </p>
+        </div>
+
+        <!-- Search Card (Rule 3.6: source, destination, travel date in dd-MM-yyyy format) -->
+        <div class="search-card">
+          <form id="busSearchForm" class="search-form">
+            <div class="form-group-grid">
+              <!-- Source -->
+              <div class="input-field-group">
+                <label for="searchSource" class="field-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                  Leaving From
+                </label>
+                <div class="input-wrapper">
+                  <select id="searchSource" class="select-control" required>
+                    <option value="">Select departure city...</option>
+                    <option value="Mumbai" selected>Mumbai</option>
+                    <option value="Pune">Pune</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Nashik">Nashik</option>
+                    <option value="Ahmedabad">Ahmedabad</option>
+                    <option value="Shirdi">Shirdi</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Swap Route Button -->
+              <button type="button" class="route-swap-btn" id="swapRouteBtn" title="Swap Cities">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path><path d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+              </button>
+
+              <!-- Destination -->
+              <div class="input-field-group">
+                <label for="searchDestination" class="field-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                  Going To
+                </label>
+                <div class="input-wrapper">
+                  <select id="searchDestination" class="select-control" required>
+                    <option value="">Select destination city...</option>
+                    <option value="Pune" selected>Pune</option>
+                    <option value="Mumbai">Mumbai</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Nashik">Nashik</option>
+                    <option value="Ahmedabad">Ahmedabad</option>
+                    <option value="Shirdi">Shirdi</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Travel Date (Rule 3.5: dd-MM-yyyy format, cannot be in past) -->
+              <div class="input-field-group">
+                <label for="searchDate" class="field-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  Travel Date <span class="format-hint">(dd-MM-yyyy)</span>
+                </label>
+                <div class="input-wrapper date-wrapper">
+                  <input type="date" id="searchDate" class="date-control" required>
+                  <span class="formatted-date-badge" id="formattedDatePreview">Select date</span>
+                </div>
+              </div>
+
+              <!-- Search Button -->
+              <div class="search-submit-col">
+                <button type="submit" class="btn btn-primary btn-search" id="submitSearchBtn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  Search Buses
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Quick Route Badges -->
+          <div class="quick-routes">
+            <span class="quick-label">Popular Routes:</span>
+            <button type="button" class="chip-btn" data-from="Mumbai" data-to="Pune">Mumbai &rarr; Pune</button>
+            <button type="button" class="chip-btn" data-from="Mumbai" data-to="Goa">Mumbai &rarr; Goa</button>
+            <button type="button" class="chip-btn" data-from="Pune" data-to="Nashik">Pune &rarr; Nashik</button>
+            <button type="button" class="chip-btn" data-from="Mumbai" data-to="Ahmedabad">Mumbai &rarr; Ahmedabad</button>
+          </div>
+        </div>
+
+        <!-- Highlight Metric Cards -->
+        <div class="hero-stats">
+          <div class="stat-pill">
+            <span class="stat-pill-num">100%</span>
+            <span class="stat-pill-label">Real-time Seat Booking</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-num">90%</span>
+            <span class="stat-pill-label">Refund on Cancellation</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-num">SHA-256</span>
+            <span class="stat-pill-label">Encrypted Security</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-pill-num">Instant</span>
+            <span class="stat-pill-label">Digital Boarding Passes</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: BUS SEARCH RESULTS / ALL BUSES -->
+    <section class="section-container" id="busResultsSection">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-title-wrap">
+            <div class="route-search-meta" id="searchMetaNotice">
+              <span class="section-eyebrow">Scheduled Departures</span>
+              <h2 class="section-title" id="resultsTitle">Available Buses</h2>
+            </div>
+            <p class="section-desc" id="resultsSubtitle">Select a bus to preview seat availability and book up to 6 seats.</p>
+          </div>
+          <div class="results-actions">
+            <button class="btn btn-sm btn-ghost" id="showAllBusesBtn">View All Fleet Routes</button>
+          </div>
+        </div>
+
+        <!-- Bus Cards Container -->
+        <div class="bus-cards-grid" id="busCardsGrid">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Empty state when no buses match -->
+        <div class="empty-state hidden" id="noBusesFound">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          </div>
+          <h3>No Buses Found for This Route</h3>
+          <p>We couldn't find any buses scheduled between these cities. Please check other dates or explore our complete route fleet.</p>
+          <button class="btn btn-outline" id="clearSearchFiltersBtn">Show All Available Fleet</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: MY BOOKINGS (Passenger Only) -->
+    <section class="section-container hidden" id="myBookingsSection">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">Personal Dashboard</span>
+            <h2 class="section-title">My Bookings &amp; Tickets</h2>
+            <p class="section-desc">View your reservation history, print digital boarding passes, or manage cancellations with guaranteed 90% refunds.</p>
+          </div>
+          <button class="btn btn-outline btn-sm" id="refreshBookingsBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Bookings List -->
+        <div class="bookings-list" id="myBookingsList">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="empty-state hidden" id="noBookingsState">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <h3>No Bookings Found</h3>
+          <p>You haven't made any bus reservations yet. Search our routes and reserve your seats today!</p>
+          <button class="btn btn-primary" id="bookFirstTicketBtn">Find Buses Now</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: ADMINISTRATOR DASHBOARD (Admin Only) -->
+    <section class="section-container hidden" id="adminSection">
+      <div class="container">
+        <!-- Admin Header & Metric Counters -->
+        <div class="admin-top-bar">
+          <div>
+            <div class="admin-pill-tag">
+              <span class="admin-star">★</span> Administrator Control Center
+            </div>
+            <h2 class="section-title">Fleet &amp; System Management</h2>
+            <p class="section-desc">Manage bus fleet routes, inspect passenger reservations, and enforce booking integrity.</p>
+          </div>
+          <div class="admin-quick-actions">
+            <button class="btn btn-primary" id="openAddBusModalBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add New Bus
+            </button>
+            <button class="btn btn-outline" id="resetSystemDataBtn" title="Reset default sample buses and admin">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v6h6"></path><path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path></svg>
+              Reset Sample Data
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="admin-kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon icon-blue">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="15" rx="3"></rect><path d="M3 11h18"></path><circle cx="7" cy="15" r="1.5"></circle><circle cx="17" cy="15" r="1.5"></circle></svg>
+            </div>
+            <div>
+              <span class="kpi-label">Active Bus Fleet</span>
+              <div class="kpi-val" id="kpiTotalBuses">0</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon icon-green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div>
+              <span class="kpi-label">Confirmed Bookings</span>
+              <div class="kpi-val" id="kpiActiveBookings">0</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon icon-purple">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            </div>
+            <div>
+              <span class="kpi-label">Registered Users</span>
+              <div class="kpi-val" id="kpiTotalUsers">0</div>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon icon-amber">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div>
+              <span class="kpi-label">Total Gross Fare</span>
+              <div class="kpi-val" id="kpiTotalRevenue">₹0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Tabs -->
+        <div class="admin-tabs-bar">
+          <button class="admin-tab active" id="tabFleetBtn">Bus Fleet Management</button>
+          <button class="admin-tab" id="tabAllBookingsBtn">All Passenger Reservations</button>
+          <button class="admin-tab" id="tabSystemInfoBtn">Project Architecture &amp; Rules</button>
+        </div>
+
+        <!-- Tab 1: Bus Fleet Table -->
+        <div class="admin-tab-pane" id="paneFleet">
+          <div class="card table-card">
+            <div class="card-table-header">
+              <h3>Fleet Directory</h3>
+              <span class="card-caption">Note: Under Business Rule 3.5, buses with active passenger bookings cannot be deleted.</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="adminBusTable">
+                <thead>
+                  <tr>
+                    <th>Bus ID</th>
+                    <th>Bus Name</th>
+                    <th>Route (From &rarr; To)</th>
+                    <th>Departure</th>
+                    <th>Fare / Seat</th>
+                    <th>Capacity</th>
+                    <th>Active Bookings</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminBusTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: All Bookings Table -->
+        <div class="admin-tab-pane hidden" id="paneAllBookings">
+          <div class="card table-card">
+            <div class="card-table-header">
+              <h3>Master Reservation Log</h3>
+              <span class="card-caption">All passenger reservations across the entire system.</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table" id="adminBookingsTable">
+                <thead>
+                  <tr>
+                    <th>Booking ID</th>
+                    <th>Passenger</th>
+                    <th>Bus</th>
+                    <th>Travel Date</th>
+                    <th>Seats Booked</th>
+                    <th>Total Fare</th>
+                    <th>Status</th>
+                    <th>Ticket Action</th>
+                  </tr>
+                </thead>
+                <tbody id="adminBookingsTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: System Architecture & Business Rules Overview -->
+        <div class="admin-tab-pane hidden" id="paneSystemInfo">
+          <div class="card info-overview-card">
+            <h3>System Architecture &bull; Business Rules Compliance Matrix</h3>
+            <p class="subtitle">Verifiable compliance with all specifications of the business model:</p>
+            <div class="compliance-grid">
+              <div class="compliance-item">
+                <span class="rule-badge">Rule 3.5.1</span>
+                <h4>Username &amp; Password Security</h4>
+                <p>Username strictly 3-15 chars (alphanumeric &amp; _). Passwords stored exclusively as cryptographically secure SHA-256 hashes via Web Crypto API.</p>
+              </div>
+              <div class="compliance-item">
+                <span class="rule-badge">Rule 3.5.2</span>
+                <h4>Date Validation (dd-MM-yyyy)</h4>
+                <p>All travel dates are validated against the standard format and past dates are rejected.</p>
+              </div>
+              <div class="compliance-item">
+                <span class="rule-badge">Rule 3.5.3 &amp; 3.5.4</span>
+                <h4>Seat Constraints &amp; Fare Formula</h4>
+                <p>Seats booked per travel date; double-booking prevented; maximum 6 seats per booking. Total Fare = Fare &times; Seats.</p>
+              </div>
+              <div class="compliance-item">
+                <span class="rule-badge">Rule 3.5.5</span>
+                <h4>Cancellation &amp; 90% Refund</h4>
+                <p>90% of fare refunded, 10% cancellation charge deducted. Released seats instantly return to availability.</p>
+              </div>
+              <div class="compliance-item">
+                <span class="rule-badge">Rule 3.5.6</span>
+                <h4>Active Booking Deletion Guard</h4>
+                <p>Buses with active bookings cannot be removed by an administrator, preventing orphaned reservations.</p>
+              </div>
+              <div class="compliance-item">
+                <span class="rule-badge">Rule 3.5.7</span>
+                <h4>First-Run Auto-Seed</h4>
+                <p>Default administrator (<code>admin</code> / <code>admin123</code>) and 4 sample buses created on initialization.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION: REPORT HIGHLIGHTS & ARCHITECTURE SHOWCASE (LIGHT THEME) -->
+    <section class="section-container bg-subtle" id="projectReportHighlights">
+      <div class="container">
+        <div class="features-header text-center">
+          <span class="section-eyebrow">Project Specifications</span>
+          <h2 class="section-title">Engineered to Enterprise Transportation Standards</h2>
+          <p class="section-desc">Seamlessly modeling Java OOP classes (Main, BusReservationSystem, DataStore, Bus, Booking, User) into a modern client-side web application.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon icon-blue">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <h3>BusReservationSystem Logic</h3>
+            <p>Handles registration, SHA-256 authenticated login, route search, booking validation, seat capacity, and cancellation logic.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon icon-emerald">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+            </div>
+            <h3>DataStore (Serialized Persistence)</h3>
+            <p>Replicates <code>busdata.ser</code> with persistent browser localStorage, managing users, bus fleet, and reservations between reloads.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon icon-amber">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+            </div>
+            <h3>90% Instant Cancellation Refund</h3>
+            <p>Calculates refund receipts automatically (90% returned, 10% fee retained), and releases seats for future passengers.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: AUTHENTICATION (Login & Register) -->
+  <div class="modal-backdrop hidden" id="authModal">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="authModalTitle">Sign In to BusReserve</h3>
+          <p class="modal-subtitle">Access your tickets or administrative panel</p>
+        </div>
+        <button class="modal-close-btn" id="closeAuthModalBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Auth Tabs -->
+        <div class="modal-tabs">
+          <button class="modal-tab active" id="tabLoginBtn">Sign In</button>
+          <button class="modal-tab" id="tabRegisterBtn">Register New Passenger</button>
+        </div>
+
+        <!-- Quick Demo Accounts (Helpful for testing!) -->
+        <div class="demo-accounts-bar" id="demoAccountsBox">
+          <span class="demo-title">Quick Demo Login:</span>
+          <div class="demo-buttons">
+            <button type="button" class="btn btn-xs btn-outline demo-btn" id="fillAdminDemoBtn">Admin (admin/admin123)</button>
+            <button type="button" class="btn btn-xs btn-outline demo-btn" id="fillPassengerDemoBtn">Passenger (rahul/pass123)</button>
+          </div>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" class="auth-form">
+          <div class="form-group">
+            <label for="loginUsername" class="form-label">Username</label>
+            <input type="text" id="loginUsername" class="form-control" placeholder="Enter your username" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="loginPassword" class="form-label">Password</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="loginSubmitBtn">
+            Sign In Securely
+          </button>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="registerForm" class="auth-form hidden">
+          <div class="form-group">
+            <label for="regFullName" class="form-label">Full Name</label>
+            <input type="text" id="regFullName" class="form-control" placeholder="e.g. Rahul Sharma" required>
+          </div>
+          <div class="form-group">
+            <label for="regUsername" class="form-label">
+              Username <span class="field-hint">(3–15 letters, digits or underscores)</span>
+            </label>
+            <input type="text" id="regUsername" class="form-control" placeholder="e.g. rahul_s" required minlength="3" maxlength="15" pattern="^[a-zA-Z0-9_]{3,15}$">
+          </div>
+          <div class="form-group">
+            <label for="regPassword" class="form-label">
+              Password <span class="field-hint">(At least 6 characters &bull; SHA-256 hashed)</span>
+            </label>
+            <input type="password" id="regPassword" class="form-control" placeholder="Minimum 6 characters" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label for="regConfirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" id="regConfirmPassword" class="form-control" placeholder="Re-type password" required minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="registerSubmitBtn">
+            Create Passenger Account
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: SEAT SELECTION & BOOKING -->
+  <div class="modal-backdrop hidden" id="bookingModal">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-header">
+        <div>
+          <span class="badge-pill" id="modalBusIdBadge">BUS-101</span>
+          <h3 class="modal-title" id="bookingModalTitle">Select Seats &bull; Mumbai &rarr; Pune</h3>
+          <p class="modal-subtitle" id="bookingModalSubtitle">Travel Date: 29-10-2026 &bull; Departure: 06:00 AM &bull; Fare: ₹450 / seat</p>
+        </div>
+        <button class="modal-close-btn" id="closeBookingModalBtn">&times;</button>
+      </div>
+
+      <div class="modal-body booking-modal-grid">
+        <!-- Left: Interactive Bus Seat Layout (Report 3.6: Seat layout with booked seats marked [XX]) -->
+        <div class="seatmap-container">
+          <div class="bus-chassis">
+            <!-- Bus Front / Driver Cabin -->
+            <div class="bus-front-cabin">
+              <div class="cabin-label">FRONT / ENTRANCE</div>
+              <div class="driver-wheel" title="Driver's Seat">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 0 0 20"></path><line x1="12" y1="12" x2="22" y2="12"></line><line x1="12" y1="12" x2="5" y2="7"></line><line x1="12" y1="12" x2="5" y2="17"></line></svg>
+                <span>Driver</span>
+              </div>
+            </div>
+
+            <!-- Seat Legend -->
+            <div class="seat-legend">
+              <div class="legend-item">
+                <span class="seat-sample seat-available"></span>
+                <span>Available</span>
+              </div>
+              <div class="legend-item">
+                <span class="seat-sample seat-selected"></span>
+                <span>Selected</span>
+              </div>
+              <div class="legend-item">
+                <span class="seat-sample seat-booked">XX</span>
+                <span>Booked [XX]</span>
+              </div>
+            </div>
+
+            <!-- Bus Seat Grid (2x2 layout with aisle) -->
+            <div class="bus-seats-wrapper" id="busSeatsWrapper">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <div class="seat-rules-notice">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+              <span>Rule 3.5: Maximum 6 seats per booking. Booked seats are marked [XX] for chosen date.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Passenger Details Form & Pricing -->
+        <div class="booking-form-pane">
+          <div class="booking-summary-header">
+            <h4>Passenger Details</h4>
+            <span class="selected-count-badge" id="selectedSeatsCount">0 / 6 Seats Selected</span>
+          </div>
+
+          <form id="confirmBookingForm">
+            <!-- Dynamic Passenger input fields for each selected seat (Report 3.6: Seat numbers, name, age) -->
+            <div class="passenger-inputs-container" id="passengerInputsContainer">
+              <div class="empty-passenger-hint" id="emptyPassengerHint">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <p>Please click on available seats in the layout to add passenger details.</p>
+              </div>
+            </div>
+
+            <!-- Fare Calculation Card (Rule 3.5: Total fare = fare per seat * number of seats) -->
+            <div class="fare-breakdown-card">
+              <div class="fare-row">
+                <span>Fare per seat:</span>
+                <span id="farePerSeatDisplay">₹0</span>
+              </div>
+              <div class="fare-row">
+                <span>Number of seats:</span>
+                <span id="fareSeatCountDisplay">0</span>
+              </div>
+              <div class="fare-row">
+                <span>Selected Seats:</span>
+                <span id="fareSeatsListDisplay" class="font-mono">None</span>
+              </div>
+              <div class="fare-divider"></div>
+              <div class="fare-row fare-total">
+                <span>Total Fare:</span>
+                <span class="fare-total-val" id="fareTotalDisplay">₹0</span>
+              </div>
+            </div>
+
+            <!-- Booking Submit Button -->
+            <div class="booking-submit-wrap">
+              <button type="submit" class="btn btn-primary btn-block btn-lg" id="confirmBookingBtn" disabled>
+                Confirm &amp; Generate Ticket
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: TICKET PRINTING / VIEWING (Report 3.4 & 3.6: Prints the ticket) -->
+  <div class="modal-backdrop hidden" id="ticketModal">
+    <div class="modal-dialog modal-lg printable-ticket-dialog">
+      <div class="modal-header no-print">
+        <div>
+          <h3 class="modal-title">Official Boarding Pass</h3>
+          <p class="modal-subtitle">Reservation Confirmed &bull; Present this ticket while boarding</p>
+        </div>
+        <button class="modal-close-btn" id="closeTicketModalBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Printable Ticket Card -->
+        <div class="ticket-card" id="printableTicketCard">
+          <div class="ticket-top-strip">
+            <div class="ticket-inst-branding">
+              <span class="ticket-badge">SWIFTTRANSIT EXPRESS</span>
+              <span class="ticket-uni">Official Passenger Boarding Pass &bull; Verified Reservation</span>
+            </div>
+            <div class="ticket-status-pill" id="ticketStatusPill">
+              CONFIRMED
+            </div>
+          </div>
+
+          <div class="ticket-content">
+            <div class="ticket-header-grid">
+              <div>
+                <span class="ticket-meta-label">Booking Reference</span>
+                <div class="ticket-id" id="ticketBookingId">ST-BK-20261028-101</div>
+              </div>
+              <div>
+                <span class="ticket-meta-label">Travel Date (dd-MM-yyyy)</span>
+                <div class="ticket-highlight" id="ticketDate">29-10-2026</div>
+              </div>
+              <div>
+                <span class="ticket-meta-label">Departure Time</span>
+                <div class="ticket-highlight" id="ticketTime">06:00 AM</div>
+              </div>
+            </div>
+
+            <div class="ticket-route-banner">
+              <div class="route-city">
+                <span class="city-label">ORIGIN</span>
+                <h3 class="city-name" id="ticketOrigin">Mumbai</h3>
+              </div>
+              <div class="route-arrow-design">
+                <span class="bus-model-label" id="ticketBusName">Volvo Super Express (BUS-101)</span>
+                <div class="arrow-line">
+                  <span class="arrow-dot"></span>
+                  <span class="arrow-bar"></span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+              </div>
+              <div class="route-city text-right">
+                <span class="city-label">DESTINATION</span>
+                <h3 class="city-name" id="ticketDestination">Pune</h3>
+              </div>
+            </div>
+
+            <!-- Seat Numbers and Booked By -->
+            <div class="ticket-details-grid">
+              <div class="ticket-col">
+                <span class="ticket-meta-label">Booked By (Username)</span>
+                <div class="ticket-val" id="ticketBookedBy">rahul_s</div>
+              </div>
+              <div class="ticket-col">
+                <span class="ticket-meta-label">Assigned Seat(s)</span>
+                <div class="ticket-val font-mono highlight-seats" id="ticketSeatNumbers">1, 2</div>
+              </div>
+              <div class="ticket-col">
+                <span class="ticket-meta-label">Total Fare Paid</span>
+                <div class="ticket-val text-primary" id="ticketFarePaid">₹900</div>
+              </div>
+            </div>
+
+            <!-- Passenger Roster Table -->
+            <div class="ticket-passenger-section">
+              <span class="ticket-meta-label">Passenger List</span>
+              <table class="ticket-passenger-table">
+                <thead>
+                  <tr>
+                    <th>Seat #</th>
+                    <th>Passenger Name</th>
+                    <th>Age</th>
+                    <th>Ticket Fare</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketPassengerTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Barcode & Disclaimer Footer -->
+            <div class="ticket-footer-strip">
+              <div class="ticket-barcode-area">
+                <div class="barcode-lines" id="ticketBarcodeLines"></div>
+                <span class="barcode-number" id="ticketBarcodeText">90281-20261028-101</span>
+              </div>
+              <div class="ticket-rules-note">
+                <p><strong>Travel Instructions:</strong> Please arrive 15 minutes prior to scheduled departure with valid photo ID. Cancellations are permitted prior to trip with 90% instant refund (10% cancellation charge applies as per Standard Policy Rule 3.5).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer (hidden when printing) -->
+      <div class="modal-footer no-print">
+        <button class="btn btn-outline" id="closeTicketBottomBtn">Close</button>
+        <button class="btn btn-primary" id="printTicketBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          Print Boarding Pass
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: ADMIN ADD NEW BUS -->
+  <div class="modal-backdrop hidden" id="addBusModal">
+    <div class="modal-dialog modal-md">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Add New Bus to Fleet</h3>
+          <p class="modal-subtitle">Administrator Route Management</p>
+        </div>
+        <button class="modal-close-btn" id="closeAddBusModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="addBusForm">
+          <div class="form-group">
+            <label for="newBusId" class="form-label">Bus ID <span class="field-hint">(e.g. BUS-105)</span></label>
+            <input type="text" id="newBusId" class="form-control" placeholder="BUS-105" required>
+          </div>
+          <div class="form-group">
+            <label for="newBusName" class="form-label">Bus Service Name</label>
+            <input type="text" id="newBusName" class="form-control" placeholder="e.g. Scania AC Sleeper / Shivneri Express" required>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="newBusSource" class="form-label">Source City</label>
+              <input type="text" id="newBusSource" class="form-control" placeholder="e.g. Mumbai" required>
+            </div>
+            <div class="form-group">
+              <label for="newBusDest" class="form-label">Destination City</label>
+              <input type="text" id="newBusDest" class="form-control" placeholder="e.g. Goa" required>
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="newBusTime" class="form-label">Departure Time</label>
+              <input type="text" id="newBusTime" class="form-control" placeholder="e.g. 09:30 PM" required>
+            </div>
+            <div class="form-group">
+              <label for="newBusFare" class="form-label">Fare / Seat (₹)</label>
+              <input type="number" id="newBusFare" class="form-control" placeholder="e.g. 750" min="50" max="10000" required>
+            </div>
+            <div class="form-group">
+              <label for="newBusSeats" class="form-label">Total Seats</label>
+              <input type="number" id="newBusSeats" class="form-control" placeholder="e.g. 28" min="8" max="40" value="28" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="saveNewBusBtn">
+            Save Bus Route to System
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: CANCELLATION CONFIRMATION (Rule 3.5: 90% refund, 10% charge) -->
+  <div class="modal-backdrop hidden" id="cancelConfirmModal">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Ticket Cancellation</h3>
+        <button class="modal-close-btn" id="closeCancelModalBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cancel-summary-box">
+          <p>Are you sure you want to cancel booking <strong id="cancelModalBookingId">#BK-000</strong>?</p>
+          <div class="refund-calc-card">
+            <div class="refund-row">
+              <span>Original Fare Paid:</span>
+              <strong id="cancelOriginalFare">₹0</strong>
+            </div>
+            <div class="refund-row text-danger">
+              <span>Cancellation Charge (10%):</span>
+              <strong id="cancelFeeDisplay">-₹0</strong>
+            </div>
+            <div class="fare-divider"></div>
+            <div class="refund-row text-success refund-net">
+              <span>Net Refund Amount (90%):</span>
+              <strong id="cancelRefundDisplay">₹0</strong>
+            </div>
+          </div>
+          <p class="cancel-note">Released seats will immediately be made available for other travelers.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="abortCancelBtn">Keep Ticket</button>
+        <button class="btn btn-danger" id="executeCancelBtn">Confirm Cancellation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <div class="container footer-content">
+      <div class="footer-left">
+        <div class="footer-brand">SwiftTransit Bus Reservation System</div>
+        <p class="footer-copy">Next-Generation Intercity Bus Booking &amp; Fleet Management Platform</p>
+        <p class="footer-uni">Certified Passenger Safety &bull; Instant 90% Refund Guarantee &bull; End-to-End Encryption</p>
+      </div>
+      <div class="footer-right">
+        <div class="footer-tech-stack">
+          <span class="tech-tag">HTML5</span>
+          <span class="tech-tag">CSS3 (Light Theme)</span>
+          <span class="tech-tag">JavaScript (ES6+)</span>
+          <span class="tech-tag">WebCrypto SHA-256</span>
+          <span class="tech-tag">DataStore Persistence</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT -->
+  <script src="app.js"></script>
+</body>
+</html>
