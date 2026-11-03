@@ -1,0 +1,10 @@
+# Java compilation files
+*.class
+bin/
+target/
+.idea/
+*.iml
+.vscode/
+
+# Runtime persistence (optional seed)
+busdata.ser
