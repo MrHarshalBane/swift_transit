@@ -33,6 +33,77 @@ async function sha256(str) {
 }
 
 // ============================================================================
+// 1.5 JAVA REST BACKEND CLIENT WITH OFFLINE / LOCALSTORAGE FALLBACK
+// ============================================================================
+const ApiClient = {
+  baseUrl: (window.location.protocol === 'file:')
+    ? 'http://localhost:8080'
+    : (window.location.port === '8080' ? '' : 'http://localhost:8080'),
+  connected: false,
+
+  async checkHealth() {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+      const res = await fetch(\/api/health, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        const data = await res.json();
+        this.connected = data.success === true;
+        this.updateBadge(true);
+        return true;
+      }
+    } catch (e) {
+      this.connected = false;
+    }
+    this.updateBadge(false);
+    return false;
+  },
+
+  updateBadge(isOnline) {
+    const pill = document.getElementById('backendStatusPill');
+    const text = document.getElementById('backendStatusText');
+    if (!pill || !text) return;
+    if (isOnline) {
+      pill.className = 'backend-status-badge connected';
+      text.textContent = 'Java Backend: Active (:8080)';
+      pill.title = 'Connected to SwiftTransit Java REST Backend Engine (busdata.ser)';
+    } else {
+      pill.className = 'backend-status-badge offline';
+      text.textContent = 'Java Backend: Offline (LocalStorage Mode)';
+      pill.title = 'Running in-browser LocalStorage mode. Launch backend/run-backend.bat to connect Java REST server.';
+    }
+  },
+
+  async request(endpoint, options = {}) {
+    if (!this.connected) return null;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const res = await fetch(\\, {
+        headers: { 'Content-Type': 'application/json' },
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Server request failed');
+      }
+      return data;
+    } catch (err) {
+      if (err.message && !err.message.includes('fetch')) {
+        throw err;
+      }
+      console.warn('Backend request failed, falling back to LocalStorage:', err);
+      return null;
+    }
+  }
+};
+
+// ============================================================================
 // 2. DATE UTILITIES (Rule 3.5: dd-MM-yyyy format, cannot be in past)
 // ============================================================================
 const DateUtils = {
@@ -299,6 +370,16 @@ class BusReservationSystem {
 
     const passwordHash = await sha256(password);
     const newUser = new User(username, passwordHash, fullName, 'PASSENGER');
+    if (ApiClient.connected) {
+      try {
+        await ApiClient.request('/api/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ username, passwordHash, fullName, role: 'PASSENGER' })
+        });
+      } catch (e) {
+        console.warn('Backend register sync warning:', e);
+      }
+    }
     this.dataStore.users.push(newUser);
     this.dataStore.save();
 
@@ -419,6 +500,23 @@ class BusReservationSystem {
     // Mark seats in Bus
     bus.markSeatsBooked(travelDate, selectedSeats);
 
+    if (ApiClient.connected) {
+      try {
+        await ApiClient.request('/api/bookings', {
+          method: 'POST',
+          body: JSON.stringify({
+            username: this.currentUser.username,
+            fullName: this.currentUser.fullName,
+            busId: bus.id,
+            travelDate,
+            seats: [...selectedSeats],
+            passengers: passengerList
+          })
+        });
+      } catch (e) {
+        console.warn('Backend booking sync warning:', e);
+      }
+    }
     // Save Booking
     this.dataStore.bookings.unshift(newBooking);
     this.dataStore.save();
@@ -458,6 +556,20 @@ class BusReservationSystem {
     booking.status = 'CANCELLED';
     booking.refundAmount = refundAmount;
 
+    if (ApiClient.connected) {
+      try {
+        await ApiClient.request('/api/bookings/cancel', {
+          method: 'POST',
+          body: JSON.stringify({
+            bookingId: booking.bookingId,
+            username: this.currentUser.username,
+            role: this.currentUser.role
+          })
+        });
+      } catch (e) {
+        console.warn('Backend cancel sync warning:', e);
+      }
+    }
     this.dataStore.save();
 
     return {
@@ -561,6 +673,46 @@ class MainUI {
     this.bindEvents();
     this.initDefaultValues();
     this.render();
+    ApiClient.checkHealth().then(online => {
+      if (online) this.syncWithBackend();
+    });
+    const pill = document.getElementById('backendStatusPill');
+    if (pill) {
+      pill.style.cursor = 'pointer';
+      pill.addEventListener('click', () => {
+        ApiClient.checkHealth().then(online => {
+          if (online) {
+            this.syncWithBackend();
+            this.showToast('Java Backend connected & synchronized!', 'success');
+          } else {
+            this.showToast('Java Backend is offline on http://localhost:8080', 'info');
+          }
+        });
+      });
+    }
+  }
+
+  async syncWithBackend() {
+    try {
+      const res = await ApiClient.request('/api/buses');
+      if (res && res.buses) {
+        this.dataStore.buses = res.buses.map(b => new Bus(b.id, b.name, b.source, b.destination, b.departureTime, b.fare, b.totalSeats, b.bookedSeatsByDate));
+        this.dataStore.save();
+        this.renderBusCards();
+      }
+      const bRes = await ApiClient.request('/api/bookings');
+      if (bRes && bRes.bookings) {
+        this.dataStore.bookings = bRes.bookings.map(bk => new Booking(
+          bk.bookingId, bk.passengerUsername, bk.passengerFullName, bk.busId, bk.busName,
+          bk.source, bk.destination, bk.travelDate, bk.departureTime, bk.seats,
+          bk.passengers, bk.farePerSeat, bk.status, bk.refundAmount, bk.createdAt
+        ));
+        this.dataStore.save();
+        this.renderMyBookings();
+      }
+    } catch (e) {
+      console.warn('Sync with backend warning:', e);
+    }
   }
 
   initDOMElements() {
